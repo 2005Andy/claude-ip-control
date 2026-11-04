@@ -1,0 +1,22 @@
+{
+  "refresh_interval": "10m",
+  "targets": [
+    {
+      "name": "anthropic",
+      "domains": [
+        "claude.ai",
+        "api.anthropic.com"
+      ]
+    },
+    {
+      "name": "openai",
+      "domains": [
+        "chatgpt.com",
+        "api.openai.com"
+      ]
+    }
+  ],
+  "allowlist": [
+    "203.0.113.10/32"
+  ]
+}
