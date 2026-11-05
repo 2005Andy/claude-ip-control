@@ -39,6 +39,8 @@ func RenderVergeScript(cfg *Config) (string, error) {
 		"health_interval_seconds": v.HealthEvery,
 		"probe_listen":            v.ProbeListen,
 		"probe_port":              v.ProbePort,
+		"controller_url":          cfg.Mihomo.URL,
+		"controller_secret":       cfg.Mihomo.Secret,
 		"domains":                 nonNil(cfg.Domains),
 		"cidrs":                   nonNil(cfg.CIDRs),
 	}

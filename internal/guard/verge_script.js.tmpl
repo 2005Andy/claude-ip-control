@@ -80,5 +80,7 @@ function main(config, profileName) {
     config.rules = rules;
   }
   config.mode = "rule";
+  if (GUARD.controller_url) config["external-controller"] = GUARD.controller_url;
+  if (GUARD.controller_secret) config.secret = GUARD.controller_secret;
   return config;
 }

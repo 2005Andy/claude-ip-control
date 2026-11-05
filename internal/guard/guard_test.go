@@ -267,6 +267,20 @@ func TestRenderVergeScriptUsesConfig(t *testing.T) {
 	if strings.Contains(script, "__GUARD_CONFIG__") {
 		t.Error("marker not replaced")
 	}
+	cfg.Mihomo.URL = "http://127.0.0.1:9097"
+	cfg.Mihomo.Secret = "local-secret"
+	if err := cfg.validate(); err != nil {
+		t.Fatal(err)
+	}
+	script, err = RenderVergeScript(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{`"controller_url": "http://127.0.0.1:9097"`, `config["external-controller"] = GUARD.controller_url`, `config.secret = GUARD.controller_secret`} {
+		if !strings.Contains(script, want) {
+			t.Errorf("rendered script missing controller setting %s", want)
+		}
+	}
 	bad := testConfig(t)
 	bad.Verge = &VergeConfig{ExitProxy: "Exit Node", UpperProxy: "Upper Node"}
 	bad.Mihomo.PinnedProxy = "Exit Node"
