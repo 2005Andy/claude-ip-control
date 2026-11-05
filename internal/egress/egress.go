@@ -56,10 +56,43 @@ func Check(ctx context.Context, expectedIP, checkURL string) (string, error) {
 	return actualIP, nil
 }
 
+// Observe fetches checkURL with the given client and returns the public source
+// IP reported by the endpoint. It accepts JSON {"ip":...}, plain-text IPs, and
+// Cloudflare /cdn-cgi/trace bodies (an "ip=" line).
+func Observe(ctx context.Context, client *http.Client, checkURL string) (string, error) {
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, checkURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("create egress probe request: %w", err)
+	}
+	request.Header.Set("Accept", "application/json,text/plain")
+	response, err := client.Do(request)
+	if err != nil {
+		return "", fmt.Errorf("egress probe via %s: %w", checkURL, err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		return "", fmt.Errorf("egress probe via %s returned HTTP %s", checkURL, response.Status)
+	}
+	body, err := io.ReadAll(io.LimitReader(response.Body, 8192))
+	if err != nil {
+		return "", fmt.Errorf("read egress probe response: %w", err)
+	}
+	ip := parseIPResponse(body)
+	if net.ParseIP(ip) == nil {
+		return "", fmt.Errorf("egress probe via %s returned no valid IP", checkURL)
+	}
+	return net.ParseIP(ip).String(), nil
+}
+
 func parseIPResponse(body []byte) string {
 	var parsed response
 	if json.Unmarshal(body, &parsed) == nil && strings.TrimSpace(parsed.IP) != "" {
 		return strings.TrimSpace(parsed.IP)
+	}
+	for _, line := range strings.Split(string(body), "\n") {
+		if value, ok := strings.CutPrefix(strings.TrimSpace(line), "ip="); ok {
+			return strings.TrimSpace(value)
+		}
 	}
 	return strings.TrimSpace(string(body))
 }

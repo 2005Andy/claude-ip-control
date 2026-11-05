@@ -1,0 +1,25 @@
+[Unit]
+Description=Claude IP Control guard (block Anthropic traffic unless egress IP matches)
+Documentation=https://github.com/2005Andy/claude-ip-control
+Wants=network-online.target
+After=network-online.target nftables.service clash-verge-service.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/claude-ip-control guard run --config /etc/claude-ip-control/guard.json --status-file /run/claude-ip-control/status.json
+Restart=always
+RestartSec=2
+RuntimeDirectory=claude-ip-control
+RuntimeDirectoryMode=0755
+LogsDirectory=claude-ip-control
+LogsDirectoryMode=0750
+# The nftables table and the Claude-Guard selection stay in place when the
+# service stops, so a crash or stop never opens Anthropic traffic.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=yes
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_DAC_OVERRIDE
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,10 @@
+/var/log/claude-ip-control/*.log {
+    weekly
+    rotate 8
+    maxsize 20M
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+}

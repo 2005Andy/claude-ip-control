@@ -1,0 +1,54 @@
+{
+  "expected_egress_ip": "203.0.113.10",
+  "probe_proxy": "http://127.0.0.1:17891",
+  "probe_urls": [
+    "https://www.cloudflare.com/cdn-cgi/trace",
+    "https://api.ipify.org?format=json"
+  ],
+  "probe_interval": "10s",
+  "state_interval": "1s",
+  "resolve_interval": "10m",
+  "mihomo": {
+    "socket": "/run/clash-verge-service/users/1000/verge-mihomo.sock",
+    "guard_group": "Claude-Guard",
+    "pinned_proxy": "Claude-142",
+    "degraded_global_proxy": "EXIT-NODE",
+    "enforce_mode": "rule"
+  },
+  "verge": {
+    "exit_proxy": "EXIT-NODE",
+    "upper_proxy": "UPPER-NODE",
+    "chain_exit": true,
+    "default_group": "Out-Default",
+    "other_traffic": "fallback",
+    "upper_domains": [],
+    "udp_via_upper": true,
+    "health_url": "http://cp.cloudflare.com/generate_204",
+    "health_interval_seconds": 60
+  },
+  "domains": [
+    "anthropic.com",
+    "claude.ai",
+    "claude.com",
+    "clau.de",
+    "claudeusercontent.com",
+    "claudemcpcontent.com",
+    "http-intake.logs.us5.datadoghq.com",
+    "browser-intake-us5-datadoghq.com"
+  ],
+  "cidrs": [
+    "160.79.104.0/21",
+    "153.61.208.0/20",
+    "153.61.224.0/22",
+    "2607:6bc0::/48"
+  ],
+  "kernel_resolve_hosts": [
+    "downloads.claude.ai"
+  ],
+  "doh_url": "https://cloudflare-dns.com/dns-query",
+  "kernel_exempt_ifnames": [
+    "lo",
+    "Mihomo"
+  ],
+  "log_file": "/var/log/claude-ip-control/guard.log"
+}

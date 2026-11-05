@@ -3,3 +3,5 @@
 /claude-ip-control.exe
 /local-config.json
 /*.log
+/deploy/linux/*.local.json
+/.omc/

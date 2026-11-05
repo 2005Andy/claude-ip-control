@@ -58,6 +58,8 @@ func run(args []string) error {
 		return clearRules(args[1:])
 	case "status":
 		return showStatus()
+	case "guard":
+		return runGuard(args[1:])
 	case "version":
 		fmt.Println("claude-ip-control dev")
 		return nil
@@ -67,7 +69,7 @@ func run(args []string) error {
 }
 
 func usageError() error {
-	return errors.New("usage: claude-ip-control <init|check|apply|run|clear|status|version> [--config path]")
+	return errors.New("usage: claude-ip-control <init|check|apply|run|clear|status|guard|version> [--config path]")
 }
 
 func configPath(fs *flag.FlagSet) *string {
