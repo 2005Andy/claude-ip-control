@@ -107,6 +107,8 @@ Otherwise it selects `REJECT` and closes guarded connections that are not on the
 
 The table and the last group selection stay in place when the daemon stops, so a crash does not unblock anything. Starting the daemon selects `REJECT` until the first successful probe. A fresh core also starts on `REJECT`, because it is the first member of `Claude-Guard`.
 
+Every field, the order for applying list changes, and how the service stays resident: [`docs/guard-config.md`](docs/guard-config.md).
+
 Install (Linux, systemd):
 
 ```text

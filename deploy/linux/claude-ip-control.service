@@ -3,12 +3,14 @@ Description=Claude IP Control guard (block Anthropic traffic unless egress IP ma
 Documentation=https://github.com/2005Andy/claude-ip-control
 Wants=network-online.target
 After=network-online.target nftables.service clash-verge-service.service
+# Never give up restarting: the guard should stay resident.
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple
 ExecStart=/usr/local/bin/claude-ip-control guard run --config /etc/claude-ip-control/guard.json --status-file /run/claude-ip-control/status.json
 Restart=always
-RestartSec=2
+RestartSec=3
 RuntimeDirectory=claude-ip-control
 RuntimeDirectoryMode=0755
 LogsDirectory=claude-ip-control
