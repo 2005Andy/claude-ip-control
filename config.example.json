@@ -1,5 +1,7 @@
 {
   "refresh_interval": "10m",
+  "expected_egress_ip": "",
+  "egress_check_url": "https://api.ipify.org?format=json",
   "targets": [
     {
       "name": "anthropic",

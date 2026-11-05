@@ -24,8 +24,8 @@ func (windowsBackend) Apply(ctx context.Context, blocked []net.IP) error {
 	}
 	for index, ip := range blocked {
 		name := fmt.Sprintf("Claude IP Control %03d %s", index+1, ip.String())
-		args := []string{"advfirewall", "firewall", "add", "rule", `name="` + name + `"`, `group="` + windowsGroup + `"`, "dir=out", "action=block", "remoteip=" + ip.String(), "enable=yes", "profile=any"}
-		if output, err := exec.CommandContext(ctx, "netsh", args...).CombinedOutput(); err != nil {
+		script := fmt.Sprintf("$ErrorActionPreference='Stop'; New-NetFirewallRule -DisplayName '%s' -Group '%s' -Direction Outbound -Action Block -RemoteAddress '%s' -Profile Any -Enabled True -Description 'managed by claude-ip-control' | Out-Null", name, windowsGroup, ip.String())
+		if output, err := runPowerShell(ctx, script); err != nil {
 			return fmt.Errorf("add Windows firewall rule for %s (run as Administrator): %w: %s", ip, err, strings.TrimSpace(string(output)))
 		}
 	}
@@ -35,7 +35,8 @@ func (windowsBackend) Apply(ctx context.Context, blocked []net.IP) error {
 func (windowsBackend) Clear(ctx context.Context) error { return deleteWindowsRules(ctx) }
 
 func (windowsBackend) Status(ctx context.Context) (string, error) {
-	output, err := exec.CommandContext(ctx, "netsh", "advfirewall", "firewall", "show", "rule", `group="`+windowsGroup+`"`).CombinedOutput()
+	script := fmt.Sprintf("$ErrorActionPreference='Stop'; $rules=@(Get-NetFirewallRule -Group '%s' -ErrorAction SilentlyContinue); if ($rules.Count -eq 0) { Write-Output 'no managed Windows firewall rules'; exit 0 }; $rules | Select-Object DisplayName,Enabled,Action,Direction,Profile | Format-Table -AutoSize | Out-String", windowsGroup)
+	output, err := runPowerShell(ctx, script)
 	if err != nil {
 		return "", fmt.Errorf("read Windows firewall status: %w: %s", err, strings.TrimSpace(string(output)))
 	}
@@ -43,9 +44,14 @@ func (windowsBackend) Status(ctx context.Context) (string, error) {
 }
 
 func deleteWindowsRules(ctx context.Context) error {
-	output, err := exec.CommandContext(ctx, "netsh", "advfirewall", "firewall", "delete", "rule", `group="`+windowsGroup+`"`).CombinedOutput()
-	if err != nil && !strings.Contains(strings.ToLower(string(output)), "no rules match") {
+	script := fmt.Sprintf("$ErrorActionPreference='Stop'; $rules=@(Get-NetFirewallRule -Group '%s' -ErrorAction SilentlyContinue); if ($rules.Count -gt 0) { $rules | Remove-NetFirewallRule -Confirm:$false -ErrorAction Stop }; exit 0", windowsGroup)
+	output, err := runPowerShell(ctx, script)
+	if err != nil {
 		return fmt.Errorf("delete Windows firewall rules: %w: %s", err, strings.TrimSpace(string(output)))
 	}
 	return nil
+}
+
+func runPowerShell(ctx context.Context, script string) ([]byte, error) {
+	return exec.CommandContext(ctx, "powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", script).CombinedOutput()
 }

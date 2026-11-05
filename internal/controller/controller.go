@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/2005Andy/claude-ip-control/internal/config"
+	"github.com/2005Andy/claude-ip-control/internal/egress"
 	"github.com/2005Andy/claude-ip-control/internal/firewall"
 )
 
@@ -85,6 +86,15 @@ func (c *Controller) BuildPlan(ctx context.Context, cfg config.Parsed) (Plan, er
 }
 
 func (c *Controller) Apply(ctx context.Context, cfg config.Parsed) (Plan, error) {
+	if cfg.ExpectedEgressIP != "" {
+		actual, err := egress.Check(ctx, cfg.ExpectedEgressIP, cfg.EgressCheckURL)
+		if err != nil {
+			return Plan{}, err
+		}
+		if actual != "" {
+			fmt.Printf("verified egress IP: %s\n", actual)
+		}
+	}
 	plan, err := c.BuildPlan(ctx, cfg)
 	if err != nil {
 		return Plan{}, err

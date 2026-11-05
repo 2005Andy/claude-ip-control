@@ -2,6 +2,8 @@
 
 `claude-ip-control` is a small cross-platform command-line firewall manager for Windows, macOS, and Linux. It resolves only the domains listed in the configuration, compares their current IPv4/IPv6 addresses with an explicit allowlist, and installs outbound block rules for the target addresses that are not allowed. The firewall's default policy remains unchanged, so unrelated traffic is left alone.
 
+If `expected_egress_ip` is set, `apply` and `run` first query `egress_check_url` and refuse to install or refresh rules unless the observed public source IP matches exactly. This is a guardrail, not a VPN or NAT mechanism: the program cannot turn the machine's source address into an IP it does not already use.
+
 The project is intentionally destination-IP based. It does not decrypt HTTPS and it does not inspect process contents. A shared CDN address can serve more than one hostname; blocking that address can therefore affect other services that use the same address. Keep the target list and allowlist narrow, and review the output of `check` before applying rules.
 
 ## Install

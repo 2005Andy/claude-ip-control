@@ -1,3 +1,5 @@
 /dist/
 /claude-ip-control
 /claude-ip-control.exe
+/local-config.json
+/*.log

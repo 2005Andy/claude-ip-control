@@ -13,9 +13,11 @@ import (
 const DefaultRefreshInterval = 10 * time.Minute
 
 type Config struct {
-	RefreshInterval string   `json:"refresh_interval"`
-	Targets         []Target `json:"targets"`
-	Allowlist       []string `json:"allowlist"`
+	RefreshInterval  string   `json:"refresh_interval"`
+	ExpectedEgressIP string   `json:"expected_egress_ip,omitempty"`
+	EgressCheckURL   string   `json:"egress_check_url,omitempty"`
+	Targets          []Target `json:"targets"`
+	Allowlist        []string `json:"allowlist"`
 }
 
 type Target struct {
@@ -25,9 +27,11 @@ type Target struct {
 }
 
 type Parsed struct {
-	RefreshInterval time.Duration
-	Targets         []Target
-	Allowlist       []*net.IPNet
+	RefreshInterval  time.Duration
+	ExpectedEgressIP string
+	EgressCheckURL   string
+	Targets          []Target
+	Allowlist        []*net.IPNet
 }
 
 func Load(path string) (Parsed, error) {
@@ -53,6 +57,14 @@ func Parse(raw Config) (Parsed, error) {
 			return Parsed{}, fmt.Errorf("refresh_interval must be a positive duration such as 10m")
 		}
 		interval = parsed
+	}
+	expectedEgressIP := strings.TrimSpace(raw.ExpectedEgressIP)
+	if expectedEgressIP != "" && net.ParseIP(expectedEgressIP) == nil {
+		return Parsed{}, fmt.Errorf("expected_egress_ip must be a valid IP address")
+	}
+	egressCheckURL := strings.TrimSpace(raw.EgressCheckURL)
+	if egressCheckURL == "" {
+		egressCheckURL = "https://api.ipify.org?format=json"
 	}
 
 	allowlist := make([]*net.IPNet, 0, len(raw.Allowlist))
@@ -91,7 +103,7 @@ func Parse(raw Config) (Parsed, error) {
 		targets = append(targets, clean)
 	}
 
-	return Parsed{RefreshInterval: interval, Targets: targets, Allowlist: allowlist}, nil
+	return Parsed{RefreshInterval: interval, ExpectedEgressIP: expectedEgressIP, EgressCheckURL: egressCheckURL, Targets: targets, Allowlist: allowlist}, nil
 }
 
 func parseCIDROrIP(value string) (*net.IPNet, error) {
