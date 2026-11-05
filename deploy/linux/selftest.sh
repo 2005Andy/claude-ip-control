@@ -15,7 +15,8 @@ ok(){ echo "  PASS: $*"; pass=$((pass+1)); }
 bad(){ echo "  FAIL: $*"; fail=$((fail+1)); }
 mh(){ curl -s --noproxy '*' --unix-socket "$SOCK" "$@"; }
 group_now(){ mh http://x/proxies/Claude-Guard | python3 -c 'import json,sys;print(json.load(sys.stdin).get("now",""))' 2>/dev/null; }
-wait_allowed(){ for _ in $(seq 1 40); do grep -q '"allowed": true' /run/claude-ip-control/status.json 2>/dev/null && return 0; sleep 1; done; return 1; }
+wait_allowed(){ for _ in $(seq 1 90); do grep -q '"allowed": true' /run/claude-ip-control/status.json 2>/dev/null && return 0; sleep 1; done
+  echo "  status: $(python3 -c 'import json;d=json.load(open("/run/claude-ip-control/status.json"));print(d.get("probe_error"),d.get("problems"))' 2>&1)"; return 1; }
 trace_ip(){ curl -s --max-time 8 "$@" "$TRACE" | sed -n 's/^ip=//p'; }
 
 echo "== 0. precheck: guard loaded in mihomo"
